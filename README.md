@@ -1,5 +1,7 @@
 # Inverse A* Search
 
+[![Build Status](https://travis-ci.com/mbattifarano/inverse-astar-search.svg?branch=master)](https://travis-ci.com/mbattifarano/inverse-astar-search)
+
 ## Development setup
 
 1. Clone the repository
