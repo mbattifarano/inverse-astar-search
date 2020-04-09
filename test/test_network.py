@@ -1,8 +1,20 @@
-from inverse_astar_search.network import show_multiDiNetwork
-from inverse_astar_search.network import random_edge_weights
-from inverse_astar_search.network import get_adjacency_toynetwork
-from inverse_astar_search.network import create_network
+import numpy as np
 
-import networkx as nx
-import matplotlib.pyplot as plt
+from hypothesis import given
+from hypothesis.strategies import integers
+from hypothesis.extra.numpy import arrays
 
+square = (integers(min_value=5, max_value=20)
+           .map(lambda n: (n, n))
+          )
+
+weighted_adjacency_matrix = arrays(
+    dtype=np.float,
+    shape=square,
+    elements=integers(min_value=0, max_value=10)
+)
+
+@given(A=weighted_adjacency_matrix)
+def test_random_networks(network_factory, A):
+    graph = network_factory(A)
+    assert graph.number_of_nodes() >= 5
