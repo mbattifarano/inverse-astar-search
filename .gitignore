@@ -1,0 +1,13 @@
+#Virtual environment
+venv/
+env/
+
+#Pycharm internal files
+.idea/
+
+#Python cache
+.pytest_cache/
+__pycache__/
+
+#Git internal files
+.git/
