@@ -2,7 +2,7 @@
 venv/
 env/
 
-#Pycharm internal files
+# Pycharm internal files
 .idea/
 
 #Python cache
