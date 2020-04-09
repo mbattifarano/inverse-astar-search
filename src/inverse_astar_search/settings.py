@@ -1,0 +1,2 @@
+
+WEIGHT_KEY = "weight"
