@@ -1,4 +1,5 @@
-networkx == 2.4
-numpy == 1.18.
-cvxpy == 1.0.24
-matplotlib == 3.1.1
+matplotlib==3.1.1
+networkx==2.4
+numpy==1.18.2
+cvxpy==1.0.29
+toolz==0.10.0
