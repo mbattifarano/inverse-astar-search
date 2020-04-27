@@ -47,6 +47,26 @@ def test_entropy():
     assert actual == pytest.approx(expected)
 
 
+def hash_graph(a: np.ndarray):
+    idx = a.nonzero()
+    w = a[idx]
+    i,j = idx
+    return hash(tuple(sorted(zip(i, j, w))))
+
+example_network_3x3 = np.array([
+    [0., 3., 1.],
+    [1., 0., 1.],
+    [1., 1., 0.]
+])
+
+example_network_5x5 = np.array([
+    [0., 0., 0., 1., 1.],
+    [1., 0., 1., 1., 1.],
+    [1., 1., 0., 1., 1.],
+    [1., 1., 1., 0., 1.],
+    [1., 1., 1., 1., 0.]
+])
+
 @given(A=weighted_adjacency_matrix)
 @example(A=np.array([
     [0., 3., 1.],
@@ -60,9 +80,18 @@ def test_entropy():
     [1., 1., 1., 0., 1.],
     [1., 1., 1., 1., 0.]
 ]))
-@settings(max_examples=64, deadline=None)
+@settings(max_examples=10, deadline=None)
 def test_linear_program(network_factory, A):
     graph = network_factory(A)
+    if A.shape == example_network_3x3.shape and np.allclose(A, example_network_3x3):
+        print("Running 3x3 example")
+        fname = "example_3x3"
+    elif A.shape == example_network_5x5.shape and np.allclose(A, example_network_5x5):
+        print("Running 5x5 example")
+        fname = "example_5x5"
+    else:
+        fname = hash_graph(A)
+    nx.write_graphml(graph, f"test/artifacts/{fname}.graphml")
     n_nodes = graph.number_of_nodes()
     hypothesis.note(f"number of nodes = {n_nodes}")
     old_weights = np.array([graph.edges[e][WEIGHT_KEY] for e in graph.edges])
@@ -79,6 +108,7 @@ def test_linear_program(network_factory, A):
     assert result.problem.status == cp.OPTIMAL
     hypothesis.note(f"objective value = {result.problem.value}")
     weights = result.edge_cost.value
+    np.save(f"test/artifacts/{fname}.weights.npy", weights)
     hypothesis.note(f"Did we recover the edge weights? {'yes' if np.allclose(weights, old_weights) else 'no'}; max error = {abs(weights - old_weights).max()}")
     assert weights is not None
     assert len(weights) == graph.number_of_edges()
