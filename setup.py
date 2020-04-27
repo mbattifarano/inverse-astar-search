@@ -6,7 +6,7 @@ def read_requirements(filename):
         return fp.read().strip().splitlines()
 
 setup(
-    name="inverse-astar-search",
+    name="inverse-pastar.py-search",
     version="0.0.1",
     description="Course Project for Graduate Artificial Intelligence (CMU 15780 Spring 2020)",
     package_dir={'': 'src'},
