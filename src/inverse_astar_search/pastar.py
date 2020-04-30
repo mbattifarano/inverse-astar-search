@@ -98,24 +98,44 @@ def heuristic_bounds(G,observed_path: list):
 
     return G
 
-def path_generator(G,n_pairs: int, attribute = 'weight'):
+def set_aerial_distance_heuristic(G, observed_paths: dict, attribute_label = 'h_d'):
+
+    # # Set node attribute of distance to destination
+    # for node in G.nodes():
+    #     np.linalg.norm(np.array(pos_nodes[edge[0]]) - np.array(pos_nodes[edge[1]]))
+    #
+    # observed_paths
+    # shortest_paths = dict(nx.all_pairs_dijkstra_path)
+    # distance_to_goal =
+    #
+    # for i, observed_path in observed_paths.items():
+    #     target = observed_path[-1]
+    #     np.linalg.norm(np.array(pos_nodes[edge[0]]) - np.array(pos_nodes[edge[1]]))
+    #
+    # pos_nodes = nx.get_node_attributes(G, nodes_coordinate_label)
+    # len_edges = {}
+    # for edge in G.edges():
+    #     len_edges[edge] = np.linalg.norm(np.array(pos_nodes[edge[0]]) - np.array(pos_nodes[edge[1]]))
+    #
+    # nx.set_edge_attributes(G, len_edges, attribute_label)
+
+    return G
+
+def path_generator(G,n_paths: int, attribute = 'weight'):
 
     nodes_G = len(list(G.nodes))
-    n_pairs_G = n_pairs
 
-    random_sources = [list(G.nodes)[i] for i in np.random.randint(0, nodes_G, n_pairs_G)]
-    random_targets = [list(G.nodes)[i] for i in np.random.randint(0, nodes_G, n_pairs_G)]
+    # Compute shortest path between every OD pairs
+    # all_shortest_paths = dict(nx.all_pairs_shortest_path(G))
+    all_shortest_paths = dict(nx.all_pairs_dijkstra_path(G))
 
-    source_target_pairs = list(zip(random_sources, random_targets))
+    #Generate pair of distinct random numbers
+    random_od_pairs = {i:np.random.choice(a=np.arange(nodes_G), size=2, replace=False) for i in  range(n_paths)}
 
-    # Remove pairs with same origin and destination
-    source_target_pairs = [source_target_pair for source_target_pair in source_target_pairs if
-                           len(np.where(source_target_pair[0] == source_target_pair[1])[0]) == 0]
+    #Sample of shortest paths
+    random_shortest_paths = {i:all_shortest_paths[v[0]][v[1]] for (k,v),i in zip(random_od_pairs.items(), range(len(random_od_pairs)))}
 
-    random_observed_paths = {i: nx.astar_path(G=G, weight=attribute, source=source_target_pair[0], target=source_target_pair[1])
-                      for source_target_pair, i in zip(source_target_pairs, range(len(source_target_pairs)))}
-
-    return random_observed_paths
+    return random_shortest_paths
 
 def astar(network):
     '''Use networkX astar algorithm which performs tree search and thus, admissibility guarantees optimality'''
