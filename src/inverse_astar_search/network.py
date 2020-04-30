@@ -3,11 +3,12 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import math
 
 def create_network(W):
     '''Create a graph object compatible with network x package
 
-    :arg W: weight matrix
+    :arg W: weight or adjacency matrix
 
     Notes: edges with 0 cost and loops are ignored.
 
@@ -25,6 +26,26 @@ def create_network(W):
     nx.set_node_attributes(graph, 0,'heuristic')
 
     return graph
+
+def set_random_nodes_coordinates(G, attribute_label, factor = 1):
+
+    if factor != 1:
+        pos = {k:factor*v for k,v in nx.random_layout(G.copy(), dim=2).items()}
+
+    nx.set_node_attributes(G,pos, attribute_label)
+
+    return G
+
+def set_edges_euclidean_distances(G, attribute_label, nodes_coordinate_label = 'pos'):
+
+    pos_nodes = nx.get_node_attributes(G,nodes_coordinate_label)
+    len_edges = {}
+    for edge in G.edges():
+        len_edges[edge] = np.linalg.norm(np.array(pos_nodes[edge[0]]) - np.array(pos_nodes[edge[1]]))
+
+    nx.set_edge_attributes(G,len_edges,attribute_label)
+
+    return G
 
 def random_edge_weights(A, limits, type = int):
     '''

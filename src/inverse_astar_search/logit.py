@@ -56,21 +56,10 @@ def compute_edge_utility(G, theta: dict):
 
     return dict(zip(G.edges, utility))
 
-def softmax_probabilities(X,avail, theta):
-    """ Multinomial logit (or softmax) probabilities
-    :arg avail
-
-    """
-    # AVAIL
-
-    Z = X - np.amax(X,axis = 0).reshape(X.shape[0],1)
-
-    return avail*np.exp(Z*theta) / np.sum(np.exp(Z*theta)*avail , axis=1).reshape(Z.shape[0], 1)
-
 def logit_estimation(X,y: dict,avail: dict,attributes):
     '''
 
-    :argument y: chosen edges for trip i
+    :argument y: chosen edges in path i
     :argument avail: choice scenarios (set) for trip i
     :argument X: network attributes
     :argument attributes: attributes to fit discrete choice model
@@ -139,8 +128,7 @@ def logit_path_predictions(G, observed_paths: dict, theta_logit: dict):
     for key, observed_path in observed_paths.items():
         predicted_paths[key] = nx.astar_path(G=G_copy, source=observed_path[0], target=observed_path[-1], weight='utility_prediction')
 
-
-    predicted_paths_length = paths_lengths(G_copy,predicted_paths,'utility') #Utility acts as a proxy of the path length (negative)
+    predicted_paths_length = paths_lengths(G_copy,predicted_paths,'utility_prediction') #Utility acts as a proxy of the path length (negative)
 
     return {'predicted_path': predicted_paths, 'length': predicted_paths_length}
 
