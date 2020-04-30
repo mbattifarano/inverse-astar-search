@@ -29,7 +29,6 @@ def trip(path: Path) -> NodePair:
         destination(path),
     )
 
-
 def chain(a: Path, b: Path) -> Path:
     assert a[-1] == b[0]
     return a + b[1:]
