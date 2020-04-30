@@ -11,6 +11,7 @@ def assign_weights(graph: nx.DiGraph, weights: np.ndarray) -> nx.DiGraph:
         graph.edges[e][WEIGHT_KEY] = w
     return graph
 
+
 def path_cost(graph: nx.DiGraph, path: Path) -> float:
     return sum(
         graph.edges[e][WEIGHT_KEY]

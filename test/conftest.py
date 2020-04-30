@@ -1,6 +1,9 @@
 from pytest import fixture
 
+import pandas as pd
 import networkx as nx
+from collections import defaultdict
+import os
 
 
 @fixture(scope="session")
@@ -40,4 +43,11 @@ def network_lecture_AI(request):
     networks.append(g2)
 
     return networks[request.param]
+
+@fixture(scope="session")
+def data_collector():
+    data = defaultdict(list)
+    yield data
+    for table, values in data.items():
+        pd.DataFrame(values).to_csv(os.path.join("test", "artifacts", f"{table}.csv"))
 

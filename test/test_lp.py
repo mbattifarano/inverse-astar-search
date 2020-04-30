@@ -2,7 +2,7 @@ from inverse_astar_search.optim import linear_program, get_by_node_pair, entropy
 from inverse_astar_search.settings import WEIGHT_KEY
 from inverse_astar_search.graph import assign_weights, path_cost
 
-from typing import Set, Tuple
+from typing import Set, Tuple, List
 
 import networkx as nx
 import cvxpy as cp
@@ -12,18 +12,21 @@ import pytest
 
 import hypothesis
 from hypothesis import given, assume, settings, example, infer
-from hypothesis.strategies import integers
+from hypothesis.strategies import integers, lists, nothing
 from hypothesis.extra.numpy import arrays
 
-NUMBER_OF_NODES = 5
+NUMBER_OF_NODES = 8
 
 
 weighted_adjacency_matrix = (
         arrays(
             dtype=np.float,
-            shape=(NUMBER_OF_NODES, NUMBER_OF_NODES),
-            elements=integers(min_value=0, max_value=10))
-        .map(lambda A: A * (1 - np.eye(NUMBER_OF_NODES)))  # set the diagonal to zero
+            shape=integers(min_value=3, max_value=10).map(lambda n: (n, n)),
+            elements=integers(min_value=0, max_value=10),
+            fill=nothing(),
+            unique=False,
+        )
+        .map(lambda A: A * (1 - np.eye(A.shape[0])))  # set the diagonal to zero
         .filter(lambda A: (A.sum(1) > 0).all())  # at least one out edge from every node
 )
 
@@ -68,18 +71,8 @@ example_network_5x5 = np.array([
 ])
 
 @given(A=weighted_adjacency_matrix)
-@example(A=np.array([
-    [0., 3., 1.],
-    [1., 0., 1.],
-    [1., 1., 0.]
-]))
-@example(A=np.array([
-    [0., 0., 0., 1., 1.],
-    [1., 0., 1., 1., 1.],
-    [1., 1., 0., 1., 1.],
-    [1., 1., 1., 0., 1.],
-    [1., 1., 1., 1., 0.]
-]))
+@example(A=example_network_3x3)
+@example(A=example_network_5x5)
 @settings(max_examples=10, deadline=None)
 def test_linear_program(network_factory, A):
     graph = network_factory(A)
@@ -147,4 +140,56 @@ def test_linear_program(network_factory, A):
             hypothesis.note(f"least cost from {s}->{t} by actual shortest path: {expected_cost}")
             assert actual_cost == approx(cost)
             assert cost == approx(expected_cost)
+
+def _sublists(l):
+    for i in range(len(l)):
+        yield l[:i]
+
+@given(A=weighted_adjacency_matrix, path_i=lists(integers(min_value=0), min_size=1))
+#@example(A=example_network_3x3)
+#@example(A=example_network_5x5)
+@settings(max_examples=10, deadline=None)
+def test_predictions(data_collector, network_factory, A, path_i):
+    graph = network_factory(A)
+    print(f"nodes: {graph.number_of_nodes()}, edges: {graph.number_of_edges()}")
+    #print(A)
+    #print((A.T / A.sum(1)).T)
+    _paths = nx.shortest_path(graph, weight=WEIGHT_KEY)
+    paths = [p
+             for _, ps in _paths.items()
+             for _, p in ps.items()
+             if p
+             ]
+    n_paths = len(paths)
+    assert paths
+    errors = {}
+    percent_correct = []
+    tol = 1e-6
+    print(f"number of paths = {n_paths}")
+    for idx in filter(None, _sublists(path_i)):
+    #for i in range(len(paths)):
+        path_ids = [i % n_paths for i in idx]
+        #path_ids = [i]
+        observations = [tuple(paths[i]) for i in path_ids]
+        assert observations
+        result = linear_program(graph, observations)
+        result.problem.solve()
+        assert result.problem.status == cp.OPTIMAL
+        predicted_weights = result.edge_cost.value
+        g = assign_weights(graph, predicted_weights)
+        #print("recovered weights")
+        #print(nx.to_numpy_array(g, weight=WEIGHT_KEY))
+        _costs = dict(nx.shortest_path_length(g, weight=WEIGHT_KEY))
+        _errors = np.array([
+            path_cost(g, p) - _costs[p[0]][p[-1]]
+            for p in paths
+        ])
+        assert _errors.min() >= 0
+        errors[tuple(path_ids)] = _errors
+        data_collector['lp_accuracy'].append(dict(
+            n_nodes=graph.number_of_nodes(),
+            n_edges=graph.number_of_edges(),
+            n_unique_training=len(set(observations)),
+            accuracy=(_errors < tol).mean(),
+        ))
 

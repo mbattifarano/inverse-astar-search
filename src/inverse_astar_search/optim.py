@@ -118,6 +118,7 @@ def linear_program(graph: nx.DiGraph, paths: Paths) -> Result:
     trips = list(set(map(trip, paths)))
     least_path_cost = min_path_cost(len(trips))
     gamma = cp.Parameter(nonneg=True)
+    gamma.value = 0.0
 
     edge_index = {e: i for i, e in enumerate(graph.edges)}
     trip_index = {t: i for i, t in enumerate(trips)}
@@ -175,7 +176,7 @@ def linear_program(graph: nx.DiGraph, paths: Paths) -> Result:
 
     return Result(
         problem=problem,
-        penalty=gamma,
+        penalty=gamma,  # TODO: remove unused
         edge_cost=cost,
         min_trip_cost=least_path_cost,
         edge_index=edge_index,
