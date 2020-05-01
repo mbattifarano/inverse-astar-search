@@ -3,14 +3,13 @@
 # =============================================================================
 
 # Internal modules
-from src.inverse_astar_search.network import *
-# from src.inverse_astar_search.pastar import *
+from inverse_astar_search.network import *
 
-from src.inverse_astar_search.pastar import heuristic_bounds, astar_path_heuristic_nodes\
+from inverse_astar_search.pastar import heuristic_bounds, astar_path_heuristic_nodes\
     , set_heuristic_costs_nodes, set_heuristic_costs_edges, get_edge_attributes_labels,path_generator\
     , chosen_edges, path_length, paths_lengths, neighbors_path
 
-from src.inverse_astar_search.logit import create_decision_matrix_from_observed_path\
+from inverse_astar_search.logit import create_decision_matrix_from_observed_path\
     , logit_estimation, compute_edge_utility, logit_path_predictions, accuracy_pastar_predictions
 
 # External modules
