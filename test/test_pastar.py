@@ -2,10 +2,10 @@ import networkx as nx
 
 from inverse_astar_search.pastar import max_admissible_heuristic, heuristic_bounds
 
-def test_astar_admissibility():
-    # Toy network
-    g1 = test_network_lecture_AI()[1]
+def test_astar_admissibility(network_lecture_AI):
 
+    # Toy network
+    g1 = network_lecture_AI
     # Shortest path
     optimal_path = nx.shortest_path(g1, source='s', target='t')
 
@@ -23,9 +23,9 @@ def test_astar_admissibility():
     assert optimal_path == astar_optimal_path
 
 
-def test_astar_inadmissibility():
+def test_astar_inadmissibility(network_lecture_AI):
     # Toy network
-    g1 = test_network_lecture_AI()[1]
+    g1 = network_lecture_AI
 
     # Shortest path
     optimal_path = nx.shortest_path(g1, source='s', target='t')
@@ -41,9 +41,9 @@ def test_astar_inadmissibility():
 
     assert optimal_path != astar_optimal_path
 
-def test_max_admissible_heuristic():
+def test_max_admissible_heuristic(network_lecture_AI):
     # Toy network
-    g1 = test_network_lecture_AI()[1]
+    g1 = network_lecture_AI
 
     # Shortest path
     optimal_path = nx.shortest_path(g1, source='s', target='t')

@@ -15,7 +15,7 @@ def network_factory():
         return graph
     return from_adjacency_matrix
 
-@fixture(params=[0, 1])
+@fixture(params=[1])
 def network_lecture_AI(request):
     networks = []
     # g1 = nx.graph(directed=True)
