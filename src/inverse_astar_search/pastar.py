@@ -137,20 +137,6 @@ def path_generator(G,n_paths: int, attribute = 'weight'):
 
     return random_shortest_paths
 
-def astar(network):
-    '''Use networkX astar algorithm which performs tree search and thus, admissibility guarantees optimality'''
-
-    # g0 = network_lecture_AI(index=0)
-    #
-    # pos = {'s': (0, 0), 'a': (5, 5), 'b': (5, -5), 't': (10, 0)}
-    #
-    # for n, p in pos.items():
-    #     g0.nodes[n]['pos'] = p
-
-    # show_network(g0)
-
-    pass
-
 
 
 
