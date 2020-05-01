@@ -1,4 +1,4 @@
-from src.inverse_astar_search.pastar import neighbors_path, paths_lengths # These dependencies can be removed
+from inverse_astar_search.pastar import neighbors_path, paths_lengths # These dependencies can be removed
 
 import numpy as np
 import cvxpy as cp
