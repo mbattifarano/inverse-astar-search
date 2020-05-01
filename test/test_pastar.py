@@ -68,7 +68,6 @@ def test_astar_inadmissibility():
 
     assert optimal_path != astar_optimal_path
 
-
 def test_max_admissible_heuristic():
     # Toy network
     g1 = test_network_lecture_AI()[1]
@@ -82,7 +81,3 @@ def test_max_admissible_heuristic():
     astar_optimal_path = nx.astar_path(G=g1, source='s', target='t', heuristic=astar_heuristic)
 
     assert optimal_path == astar_optimal_path
-
-
-def test_heuristic_bounds():
-    pass
