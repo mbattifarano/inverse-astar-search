@@ -2,33 +2,6 @@ import networkx as nx
 
 from inverse_astar_search.pastar import max_admissible_heuristic, heuristic_bounds
 
-
-def test_network_lecture_AI():
-    networks = []
-    # g1 = nx.graph(directed=True)
-
-    g1 = nx.DiGraph(directed=True)
-
-    g1.add_edge('s', 'a', weight=2)
-    g1.add_edge('s', 'b', weight=2)
-    g1.add_edge('a', 't', weight=2)
-    g1.add_edge('b', 't', weight=3)
-
-    networks.append(g1)
-
-    g2 = nx.DiGraph(directed=True)
-
-    g2.add_edge('s', 'a', weight=1)
-    g2.add_edge('s', 'b', weight=1)
-    g2.add_edge('a', 'c', weight=1)
-    g2.add_edge('b', 'c', weight=2)
-    g2.add_edge('c', 't', weight=3)
-
-    networks.append(g2)
-
-    return networks
-
-
 def test_astar_admissibility():
     # Toy network
     g1 = test_network_lecture_AI()[1]
