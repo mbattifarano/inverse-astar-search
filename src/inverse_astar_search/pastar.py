@@ -119,7 +119,7 @@ def set_aerial_distance_heuristic(G, observed_paths: dict, attribute_label = 'h_
     #
     # nx.set_edge_attributes(G, len_edges, attribute_label)
 
-    return G
+    raise NotImplemented
 
 def path_generator(G,n_paths: int, attribute = 'weight'):
 
