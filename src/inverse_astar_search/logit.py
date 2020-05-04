@@ -1,8 +1,8 @@
-from src.inverse_astar_search.pastar import neighbors_path, paths_lengths # These dependencies can be removed
-
 import numpy as np
 import cvxpy as cp
 import networkx as nx
+
+from inverse_astar_search.pastar import neighbors_path
 
 def create_decision_matrix_from_observed_path(G, observed_path):
     ''' Receive a dictionary with the connected nodes for each node
@@ -103,6 +103,7 @@ def logit_estimation(X,y: dict,avail: dict,attributes):
     cp_problem_logit = cp.Problem(cp_objective_logit, constraints = []) #Excluding extra attributes
 
     cp_problem_logit.solve()
+    assert cp_problem_logit.status == cp.OPTIMAL
 
     return {key:val.value for key,val in cp_theta.items()}
 
