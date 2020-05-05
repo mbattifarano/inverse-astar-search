@@ -2,6 +2,7 @@ from hypothesis import given, settings
 from hypothesis.strategies import lists, integers, nothing
 from hypothesis.extra.numpy import arrays
 
+import pytest
 import time
 import numpy as np
 import networkx as nx
@@ -18,6 +19,12 @@ from inverse_astar_search.logit import create_decision_matrix_from_observed_path
 def _sublists(l):
     for i in range(len(l)):
         yield l[:i]
+
+def hash_graph(a: np.ndarray):
+    idx = a.nonzero()
+    w = a[idx]
+    i,j = idx
+    return hash(tuple(sorted(zip(i, j, w))))
 
 def _get_lp_predicted_weights(graph, observations):
     result = linear_program(graph, observations)
@@ -87,54 +94,63 @@ _indices = arrays(  # arrays of 10 to 100 non-negative unique integers
         elements=integers(min_value=0, max_value=1e5),
         unique=True,
     )
+_noise = integers(min_value=-2, max_value=1).map(lambda n: 10**n)
 
 
 timestamp = dt.datetime.utcnow().isoformat()
+
 
 @given(graph=di_graph, path_i=_indices)
 @settings(max_examples=50, deadline=None)
 def test_predictions(data_collector, graph, path_i):
     t0 = time.time()
-    print(f"Running models on a graph with {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges")
+    data_list = data_collector[f"accuracy-{timestamp}"]
+    experiment = len(data_list)
+    print(f"Running experiment {experiment} on a graph with {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges")
     features = list('abcd')
     theta_true = np.ones(len(features))
     X = np.random.random((graph.number_of_edges(), len(features)))
     utility = X @ theta_true
-    edge_weights = _utility_to_edge_weight(utility)
-    assert edge_weights.min() >= 0
-    for i, (_, _, edata) in enumerate(graph.edges(data=True)):
-        edata[WEIGHT_KEY] = edge_weights[i]
-        for j, name in enumerate(features):
-            edata[name] = X[i, j]
-    graph.graph['features'] = features
-    graph.graph['data'] = X
+    for noise in [0, 0.1, 1]:
+        epsilon = np.random.normal(0, noise, graph.number_of_edges())
+        edge_weights = _utility_to_edge_weight(utility)
+        assert edge_weights.min() >= 0
+        for i, (_, _, edata) in enumerate(graph.edges(data=True)):
+            edata[WEIGHT_KEY] = edge_weights[i]
+            for j, name in enumerate(features):
+                edata[name] = X[i, j]
+        graph.graph['features'] = features
+        graph.graph['data'] = X
 
-    _paths = nx.shortest_path(graph, weight=WEIGHT_KEY)
-    paths = [p
-             for _, ps in _paths.items()
-             for _, p in ps.items()
-             if len(p) >= 2
-             ]
-    n_nodes = graph.number_of_nodes()
-    n_edges = graph.number_of_edges()
-    n_paths = len(paths)
-    assert n_paths > 0
-    for idx in filter(lambda a: len(a) > 0, _sublists(path_i)):
-        path_ids = [i % n_paths for i in idx]
-        observations = [tuple(paths[i]) for i in path_ids]
-        assert observations
-        n_unique_observations = len(set(observations))
-        estimated_weights = {
-            'linear program': _get_lp_predicted_weights(graph, observations),
-            'recursive logit': _get_rlm_predicted_weights(graph, observations),
-        }
-        for model, weights in estimated_weights.items():
-            data_collector[f"accuracy-{timestamp}"].append(dict(
-                n_nodes=n_nodes,
-                n_edges=n_edges,
-                n_unique_training=n_unique_observations,
-                model=model,
-                accuracy=_accuracy(graph, paths, weights),
-            ))
-    print(f"Ran models in {time.time()-t0:0.4f}s")
+        _paths = nx.shortest_path(graph, weight=WEIGHT_KEY)
+        paths = [p
+                 for _, ps in _paths.items()
+                 for _, p in ps.items()
+                 if len(p) >= 2
+                 ]
+        n_nodes = graph.number_of_nodes()
+        n_edges = graph.number_of_edges()
+        n_paths = len(paths)
+        assert n_paths > 0
+        for sample_id, idx in enumerate(filter(lambda a: len(a) > 0, _sublists(path_i))):
+            path_ids = [i % n_paths for i in idx]
+            observations = [tuple(paths[i]) for i in path_ids]
+            assert observations
+            n_unique_observations = len(set(observations))
+            estimated_weights = {
+                'linear program': _get_lp_predicted_weights(graph, observations),
+                'recursive logit': _get_rlm_predicted_weights(graph, observations),
+            }
+            for model, weights in estimated_weights.items():
+                data_collector[f"accuracy-{timestamp}"].append(dict(
+                    experiment=experiment, # graph id
+                    sample_id=sample_id, #observation id
+                    n_nodes=n_nodes,
+                    n_edges=n_edges,
+                    noise=noise, # noise used
+                    n_unique_training=n_unique_observations,
+                    model=model,
+                    accuracy=_accuracy(graph, paths, weights),
+                ))
+        print(f"Ran models in {time.time()-t0:0.4f}s")
 

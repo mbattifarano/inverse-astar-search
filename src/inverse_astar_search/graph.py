@@ -17,4 +17,3 @@ def path_cost(graph: nx.DiGraph, path: Path) -> float:
         graph.edges[e][WEIGHT_KEY]
         for e in edges(path)
     )
-
